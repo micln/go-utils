@@ -1,4 +1,4 @@
-package pgo
+package go_utils
 
 /**
 常用小函数
@@ -15,6 +15,8 @@ import (
 	"math/rand"
 	"strings"
 	"time"
+	"bytes"
+	"strconv"
 )
 
 func JsonEncode(s interface{}) string {
@@ -153,3 +155,58 @@ func (e *ErrBar) Log(err error) {
 //
 //	return v;
 //}
+
+
+func InSlice(v interface{}, sl ...interface{}) bool {
+	for _, vv := range sl {
+		if vv == v {
+			return true
+		}
+	}
+	return false
+}
+
+//	convert `a_b_c` to `aBC`
+func CamelCase(v string) string{
+	ret := make([]byte, 31)
+buf := bytes.NewBuffer(ret)
+	length := len(v)
+	for i:=0;i<length;i++{
+		if v[i]!='_' {
+			buf.WriteByte(v[i])
+		}else{
+			i+=1
+			if i>length{
+				continue
+			}
+			if v[i] >= 'a' && v[i]<='z' {
+				buf.WriteByte(v[i]+ 'A'-'a')
+			}else{
+			buf.WriteByte(v[i])
+			}
+		}
+	}
+
+	return buf.String()
+}
+
+//	convert `ABC` to `a_b_c`
+func UnderlineCase(v string) string{
+	ret := make([]byte, 31)
+	buf := bytes.NewBuffer(ret)
+	length := len(v)
+	for i:=0;i<length;i++{
+		if v[i] > 'A' && v[i]<'Z'{
+			if i!=0{
+				buf.WriteByte('_')
+				buf.WriteByte(v[i] + 'a' -'A')
+			}
+		}
+	}
+	return buf.String()
+}
+
+func Intval(s string) int {
+	i,_:=strconv.Atoi(s)
+	return i
+}
