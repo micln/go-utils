@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type String []byte
+type String []rune
 
 func New(s interface{}) String {
 	switch s.(type) {
@@ -14,7 +14,9 @@ func New(s interface{}) String {
 	case string:
 		return New([]byte(s.(string)))
 	case []byte:
-		return String(s.([]byte))
+		return String([]rune(string(s.([]byte))))
+	case []rune:
+		return String(s.([]rune))
 	case String:
 		return s.(String)
 	default:
@@ -27,7 +29,11 @@ func (s String) String() string {
 }
 
 func (s String) bytes() []byte {
-	return s
+	return []byte(s.String())
+}
+
+func (s String) runes() []rune {
+	return []rune(s)
 }
 
 func (s String) Equal(sub interface{}) bool {
@@ -50,6 +56,14 @@ func (s String) HasPrefix(seq interface{}) bool {
 	return strings.HasPrefix(s.String(), New(seq).String())
 }
 
+func (s String) Replace(old interface{}, new interface{}, counts ...int) String {
+	n := -1
+	if len(counts) > 0 {
+		n = counts[0]
+	}
+	return New(strings.Replace(s.String(), New(old).String(), New(new).String(), n))
+}
+
 func (s String) HasSuffix(seq interface{}) bool {
 	return strings.HasSuffix(s.String(), New(seq).String())
 }
@@ -59,9 +73,9 @@ func (s String) Trim(seq interface{}) String {
 }
 
 func (s String) Ltrim(seq interface{}) String {
-	return s
+	return New(strings.TrimLeft(s.String(), New(seq).String()))
 }
 
 func (s String) Rtrim(seq interface{}) String {
-	return s
+	return New(strings.TrimRight(s.String(), New(seq).String()))
 }
