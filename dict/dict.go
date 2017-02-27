@@ -1,6 +1,8 @@
 package dict
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -8,11 +10,15 @@ import (
 	"github.com/micln/go-utils"
 )
 
+var (
+	ErrNotDict = errors.New(`parsed object is not map[string]interface{}`)
+)
+
 type dict struct {
 	provider map[string]interface{}
 }
 
-func NewDict() *dict {
+func Dict() *dict {
 	return &dict{
 		provider: newMap(),
 	}
@@ -59,8 +65,19 @@ func (d *dict) Forget(k interface{}) {
 	d.Set(k, nil)
 }
 
-func (d *dict) parseJson(json string) {
+func (d *dict) ParseJson(jsonBytes []byte) (err error) {
+	var i interface{}
+	err = json.Unmarshal(jsonBytes, &i)
+	if err != nil {
+		return
+	}
 
+	var ok bool
+	if d.provider, ok = i.(map[string]interface{}); !ok {
+		return ErrNotDict
+	}
+
+	return
 }
 
 func (d *dict) Keys() (keys []string) {
