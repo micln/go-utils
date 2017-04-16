@@ -14,21 +14,25 @@ var (
 	ErrNotDict = errors.New(`parsed object is not map[string]interface{}`)
 )
 
-type dict struct {
-	provider map[string]interface{}
+type Dict struct {
+	data map[string]interface{}
 }
 
-func Dict() *dict {
-	return &dict{
-		provider: newMap(),
+func NewDict() *Dict {
+	return &Dict{
+		data: newMap(),
 	}
 }
 
-func (d *dict) Get(k interface{}) interface{} {
+func (d *Dict) IsEmpty() bool {
+	return len(d.data) == 0
+}
+
+func (d *Dict) Get(k interface{}) interface{} {
 	paths := strings.Split(toString(k), `.`)
 
 	var current interface{}
-	current = toMap(d.provider)
+	current = toMap(d.data)
 
 	size := len(paths)
 	for i := 0; i < size-1; i++ {
@@ -39,10 +43,10 @@ func (d *dict) Get(k interface{}) interface{} {
 	return toMap(current)[paths[size-1]]
 }
 
-func (d *dict) Set(k interface{}, v interface{}) {
+func (d *Dict) Set(k interface{}, v interface{}) {
 	paths := strings.Split(toString(k), `.`)
 
-	parent := d.provider
+	parent := d.data
 
 	size := len(paths)
 	for idx := 0; idx < size-1; idx++ {
@@ -61,41 +65,56 @@ func (d *dict) Set(k interface{}, v interface{}) {
 	parent[paths[size-1]] = v
 }
 
-func (d *dict) Forget(k interface{}) {
+func (d *Dict) Forget(k interface{}) {
 	d.Set(k, nil)
 }
 
-func (d *dict) ParseJson(jsonBytes []byte) (err error) {
+func (d *Dict) ParseJsonObject(data []byte) (err error) {
+	d.data, err = JsonToMap(data)
+	return
+}
+
+func JsonToMap(data []byte) (m map[string]interface{}, err error) {
+	m = make(map[string]interface{})
+
 	var i interface{}
-	err = json.Unmarshal(jsonBytes, &i)
+	err = json.Unmarshal(data, &i)
 	if err != nil {
 		return
 	}
 
-	var ok bool
-	if d.provider, ok = i.(map[string]interface{}); !ok {
-		return ErrNotDict
+	m, ok := i.(map[string]interface{})
+	if !ok {
+		return m, ErrNotDict
 	}
 
 	return
 }
 
-func (d *dict) Keys() (keys []string) {
-	for k := range d.provider {
+func (d *Dict) Keys() (keys []string) {
+	for k := range d.data {
 		keys = append(keys, k)
 	}
 	return
 }
 
-func (d *dict) Values() (values []interface{}) {
-	for _, v := range d.provider {
+func (d *Dict) Values() (values []interface{}) {
+	for _, v := range d.data {
 		values = append(values, v)
 	}
 	return
 }
 
-func (d *dict) Json() string {
-	return go_utils.JsonEncode(d.provider)
+func (d *Dict) Map() map[string]interface{} {
+	return d.data
+}
+
+func (d *Dict) SetData(data map[string]interface{}) {
+	d.data = data
+}
+
+func (d *Dict) Json() string {
+	return go_utils.JsonEncode(d.data)
 }
 
 func toString(k interface{}) string {
