@@ -28,6 +28,10 @@ func (d *Dict) IsEmpty() bool {
 	return len(d.data) == 0
 }
 
+func (d *Dict) Len() int {
+	return len(d.data)
+}
+
 func (d *Dict) Get(k interface{}) interface{} {
 	paths := strings.Split(toString(k), `.`)
 
@@ -105,7 +109,25 @@ func (d *Dict) Values() (values []interface{}) {
 	return
 }
 
-func (d *Dict) Map() map[string]interface{} {
+func (d *Dict) Pluck() {}
+
+func (d *Dict) Filter(fn func(interface{}, string) bool) *Dict {
+	instance := NewDict()
+	d.Each(func(v interface{}, k string) {
+		if fn(v, k) {
+			instance.Set(k, v)
+		}
+	})
+	return instance
+}
+
+func (d *Dict) Each(fn func(interface{}, string)) {
+	for k, v := range d.data {
+		fn(v, k)
+	}
+}
+
+func (d *Dict) Data() map[string]interface{} {
 	return d.data
 }
 

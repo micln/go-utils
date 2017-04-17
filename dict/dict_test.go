@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -27,6 +28,28 @@ func TestNewDict(t *testing.T) {
 
 	d.Forget(78)
 	assert(t, d.Get(78), nil)
+}
+
+func TestDict_Filter(t *testing.T) {
+	d1 := NewDict()
+	for i := 1; i < 10; i++ {
+		d1.Set(i, i*i)
+	}
+
+	assert(t, d1.Len(), 9)
+
+	d2 := d1.Filter(func(v interface{}, k string) bool {
+		i, _ := strconv.Atoi(k)
+		return i > 5
+	})
+
+	assert(t, d2.Len(), 4)
+
+	d3 := d1.Filter(func(v interface{}, k string) bool {
+		return v.(int) < 10
+	})
+
+	assert(t, d3.Len(), 3)
 }
 
 //	test parse from json
