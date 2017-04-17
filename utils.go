@@ -6,6 +6,7 @@ Go 标准库的接口太底层了, 不适用于应用开发。这里稍作封装
 */
 
 import (
+	"bytes"
 	"crypto/md5"
 	"crypto/sha1"
 	"encoding/base64"
@@ -13,10 +14,9 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
-	"bytes"
-	"strconv"
 )
 
 func JsonEncode(s interface{}) string {
@@ -156,7 +156,6 @@ func (e *ErrBar) Log(err error) {
 //	return v;
 //}
 
-
 func InSlice(v interface{}, sl ...interface{}) bool {
 	for _, vv := range sl {
 		if vv == v {
@@ -167,22 +166,22 @@ func InSlice(v interface{}, sl ...interface{}) bool {
 }
 
 //	convert `a_b_c` to `aBC`
-func CamelCase(v string) string{
+func CamelCase(v string) string {
 	ret := make([]byte, 31)
-buf := bytes.NewBuffer(ret)
+	buf := bytes.NewBuffer(ret)
 	length := len(v)
-	for i:=0;i<length;i++{
-		if v[i]!='_' {
+	for i := 0; i < length; i++ {
+		if v[i] != '_' {
 			buf.WriteByte(v[i])
-		}else{
-			i+=1
-			if i>length{
+		} else {
+			i += 1
+			if i > length {
 				continue
 			}
-			if v[i] >= 'a' && v[i]<='z' {
-				buf.WriteByte(v[i]+ 'A'-'a')
-			}else{
-			buf.WriteByte(v[i])
+			if v[i] >= 'a' && v[i] <= 'z' {
+				buf.WriteByte(v[i] + 'A' - 'a')
+			} else {
+				buf.WriteByte(v[i])
 			}
 		}
 	}
@@ -191,15 +190,15 @@ buf := bytes.NewBuffer(ret)
 }
 
 //	convert `ABC` to `a_b_c`
-func UnderlineCase(v string) string{
+func UnderlineCase(v string) string {
 	ret := make([]byte, 31)
 	buf := bytes.NewBuffer(ret)
 	length := len(v)
-	for i:=0;i<length;i++{
-		if v[i] > 'A' && v[i]<'Z'{
-			if i!=0{
+	for i := 0; i < length; i++ {
+		if v[i] > 'A' && v[i] < 'Z' {
+			if i != 0 {
 				buf.WriteByte('_')
-				buf.WriteByte(v[i] + 'a' -'A')
+				buf.WriteByte(v[i] + 'a' - 'A')
 			}
 		}
 	}
@@ -207,6 +206,6 @@ func UnderlineCase(v string) string{
 }
 
 func Intval(s string) int {
-	i,_:=strconv.Atoi(s)
+	i, _ := strconv.Atoi(s)
 	return i
 }

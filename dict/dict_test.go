@@ -1,33 +1,28 @@
 package dict
 
 import (
-	"bytes"
-	"fmt"
-	"io/ioutil"
-	"os"
-	"runtime"
 	"strconv"
-	"strings"
 	"testing"
+
+	. "github.com/micln/go-utils/test"
 )
 
 //	test Getter/Setter
 func TestNewDict(t *testing.T) {
 	d := NewDict()
-
-	assert(t, d.Get(`a.b.c.d.e`), nil)
+	AssertEqual(t, d.Get(`a.b.c.d.e`), nil)
 
 	d.Set(`a.b.c.d.e`, `ooo`)
-	assert(t, d.Get(`a.b.c.d.e`), `ooo`)
+	AssertEqual(t, d.Get(`a.b.c.d.e`), `ooo`)
 
 	d.Set(`a.b.c.d.e`, 4324)
-	assert(t, d.Get(`a.b.c.d.e`), 4324)
+	AssertEqual(t, d.Get(`a.b.c.d.e`), 4324)
 
 	d.Set(78, 88)
-	assert(t, d.Get(78), 88)
+	AssertEqual(t, d.Get(78), 88)
 
 	d.Forget(78)
-	assert(t, d.Get(78), nil)
+	AssertEqual(t, d.Get(78), nil)
 }
 
 func TestDict_Filter(t *testing.T) {
@@ -36,32 +31,32 @@ func TestDict_Filter(t *testing.T) {
 		d1.Set(i, i*i)
 	}
 
-	assert(t, d1.Len(), 9)
+	AssertEqual(t, d1.Len(), 9)
 
 	d2 := d1.Filter(func(v interface{}, k string) bool {
 		i, _ := strconv.Atoi(k)
 		return i > 5
 	})
 
-	assert(t, d2.Len(), 4)
+	AssertEqual(t, d2.Len(), 4)
 
 	d3 := d1.Filter(func(v interface{}, k string) bool {
 		return v.(int) < 10
 	})
 
-	assert(t, d3.Len(), 3)
+	AssertEqual(t, d3.Len(), 3)
 }
 
 //	test parse from json
 func TestDict_ParseJson(t *testing.T) {
 	d := NewDict()
-	assert(t, len(d.data), 0)
+	AssertEqual(t, len(d.data), 0)
 	d.ParseJsonObject([]byte(`{"name":"zhr","age":18,"address":["yuncheng","beijing"]}`))
-	assert(t, len(d.data), 3)
+	AssertEqual(t, len(d.data), 3)
 
 	err := d.ParseJsonObject([]byte(`["a","b"]`))
-	assert(t, len(d.data), 0)
-	assert(t, err, ErrNotDict)
+	AssertEqual(t, len(d.data), 0)
+	AssertEqual(t, err, ErrNotDict)
 
 }
 
@@ -73,9 +68,9 @@ func TestDict_Json(t *testing.T) {
 	d.Set(`a`, 'b')
 	d.Set(`a.b.c.d`, 'e')
 
-	assert(t, d.Json(), `{"1":3,"a":{"b":{"c":{"d":101}}}}`)
-	assert(t, d.Keys(), []string{`1`, `a`})
-	assert(t, d.Values(), []interface{}{
+	AssertEqual(t, d.Json(), `{"1":3,"a":{"b":{"c":{"d":101}}}}`)
+	AssertEqual(t, d.Keys(), []string{`1`, `a`})
+	AssertEqual(t, d.Values(), []interface{}{
 		3,
 		map[string]interface{}{
 			`b`: map[string]interface{}{
@@ -85,59 +80,4 @@ func TestDict_Json(t *testing.T) {
 			},
 		},
 	})
-}
-
-//	assert a equals b, or show code where error
-func assert(t *testing.T, a interface{}, b interface{}) {
-	if fmt.Sprint(a) != fmt.Sprint(b) {
-		file, line := calledBy()
-		t.Errorf(
-			"Failure in %s:%d\nexpect:\t%v\n   but:\t%v\n----\n%s\n",
-			file, line,
-			a, b,
-			showFile(file, line),
-		)
-	}
-}
-
-func calledBy() (string, int) {
-	_, file, line, _ := runtime.Caller(2)
-	return file, line
-	file = strings.TrimPrefix(file, os.Getenv(`GOPATH`))
-	return `$GOPATH` + file, line
-}
-
-func showFile(filename string, line int) string {
-	file, _ := ioutil.ReadFile(filename)
-	buf := bytes.NewBufferString(``)
-
-	size := len(file)
-	begin := line - 2
-	end := line + 3
-
-	//	@todo line超过文件时
-	found := 1
-	for idx := 0; idx < size; idx++ {
-		if found >= begin && found < end {
-			buf.WriteByte(file[idx])
-		}
-
-		if file[idx] == '\n' {
-			found++
-
-			if found >= begin && found < end {
-				tag := ' '
-				if found == line {
-					tag = '#'
-				}
-				buf.WriteString(fmt.Sprintf("%c%4d|\t", tag, found))
-			}
-
-			if found >= end {
-				break
-			}
-		}
-	}
-
-	return buf.String()
 }
